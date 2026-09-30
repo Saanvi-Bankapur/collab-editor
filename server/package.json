@@ -1,0 +1,45 @@
+{
+  "name": "server",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p .",
+    "typecheck": "tsc -p . --noEmit && tsc -p tsconfig.test.json",
+    "cluster": "tsx src/cluster.ts",
+    "test:e2e": "tsx test/e2e.ts",
+    "test": "node --import tsx --test \"test/*.test.ts\""
+  },
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1141.0",
+    "@aws-sdk/s3-request-presigner": "^3.1141.0",
+    "bcryptjs": "^3.0.3",
+    "diff": "^9.0.0",
+    "docx": "^9.7.2",
+    "dotenv": "^18.0.4",
+    "express": "^5.2.1",
+    "http-proxy": "^1.18.1",
+    "ioredis": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "lib0": "^0.2.118",
+    "nodemailer": "^10.0.11",
+    "pg": "^8.23.0",
+    "ws": "^8.22.0",
+    "y-protocols": "^1.0.7",
+    "yjs": "^13.6.33",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/http-proxy": "^1.17.17",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^26.6.3",
+    "@types/nodemailer": "^8.0.2",
+    "@types/pg": "^8.23.1",
+    "@types/ws": "^8.18.1",
+    "tsx": "^4.23.15",
+    "typescript": "^5.9.3",
+    "y-websocket": "^3.1.0"
+  }
+}

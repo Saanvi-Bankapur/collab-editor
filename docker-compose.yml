@@ -1,0 +1,82 @@
+# Local infrastructure.
+#
+#   docker compose up -d                  -> just Postgres + Redis (use with `npm run dev` / `npm run cluster`)
+#   docker compose --profile full up --build
+#                                         -> the whole system in containers: Postgres, Redis,
+#                                            3 app instances and an nginx load balancer on http://localhost:8080
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: collab
+      POSTGRES_PASSWORD: collab
+      POSTGRES_DB: collab
+    ports:
+      - "5432:5432"   # if you already run Postgres locally, change to "5433:5432" and update DATABASE_URL
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U collab"]
+      interval: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 3s
+      retries: 20
+
+  # ---------- full stack (profile "full") ----------
+  app1: &app
+    profiles: ["full"]
+    build: .
+    environment: &app-env
+      DATABASE_URL: postgres://collab:collab@postgres:5432/collab
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-compose-local-secret-change-me}
+      APP_URL: http://localhost:8080
+      # Optional features: pass these through from your shell or a .env file next to this compose file
+      AI_PROVIDER: ${AI_PROVIDER:-openai}
+      AI_API_KEY: ${AI_API_KEY:-}
+      AI_BASE_URL: ${AI_BASE_URL:-https://api.groq.com/openai/v1}
+      AI_MODEL: ${AI_MODEL:-openai/gpt-oss-120b}
+      SMTP_URL: ${SMTP_URL:-}
+      S3_BUCKET: ${S3_BUCKET:-}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
+      INSTANCE_ID: server-1
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    restart: unless-stopped
+
+  app2:
+    <<: *app
+    environment:
+      <<: *app-env
+      INSTANCE_ID: server-2
+    depends_on: [app1]
+
+  app3:
+    <<: *app
+    environment:
+      <<: *app-env
+      INSTANCE_ID: server-3
+    depends_on: [app1]
+
+  lb:
+    profiles: ["full"]
+    image: nginx:1.27-alpine
+    volumes:
+      - ./deploy/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    ports:
+      - "8080:80"
+    depends_on: [app1, app2, app3]
+    restart: unless-stopped
+
+volumes:
+  pgdata:

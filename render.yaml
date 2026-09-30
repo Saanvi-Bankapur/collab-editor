@@ -1,0 +1,56 @@
+# Render Blueprint: one-click deploy of the live demo (Dashboard -> New -> Blueprint -> pick this repo).
+# Creates the web service (Docker), a Postgres database and a Key Value (Redis) instance.
+# Free plans: the web service sleeps when idle, and the free database expires after 30 days.
+services:
+  - type: web
+    name: coedit
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: coedit-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: coedit-redis
+          property: connectionString
+      # Optional (Render asks for these; leave blank to disable the feature):
+      - key: AI_API_KEY # AI assist: your Groq key (free) from https://console.groq.com/keys
+        sync: false
+      - key: AI_PROVIDER
+        value: openai
+      - key: AI_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: AI_MODEL
+        value: openai/gpt-oss-120b
+      - key: SMTP_URL # notification emails, e.g. smtp://user:pass@smtp.resend.com:587
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: S3_BUCKET # image uploads to S3 (otherwise stored in Postgres)
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: AWS_ACCESS_KEY_ID
+        sync: false
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false
+
+  - type: keyvalue
+    name: coedit-redis
+    plan: free
+    ipAllowList: [] # only reachable from inside Render
+
+databases:
+  - name: coedit-db
+    plan: free
+    databaseName: collab
+    user: collab

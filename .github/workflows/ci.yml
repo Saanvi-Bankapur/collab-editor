@@ -1,0 +1,116 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Typecheck, merge-correctness tests, build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: collab
+          POSTGRES_PASSWORD: collab
+          POSTGRES_DB: collab
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U collab" --health-interval 3s --health-retries 20
+    env:
+      DATABASE_URL: postgres://collab:collab@localhost:5432/collab
+      FUZZ_SEEDS: 100 # more randomized convergence runs in CI than locally
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+
+  e2e:
+    name: End-to-end across 3 server instances
+    needs: test
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: collab
+          POSTGRES_PASSWORD: collab
+          POSTGRES_DB: collab
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U collab" --health-interval 3s --health-retries 20
+      redis:
+        image: redis:7-alpine
+        ports: ["6379:6379"]
+        options: >-
+          --health-cmd "redis-cli ping" --health-interval 3s --health-retries 20
+    env:
+      DATABASE_URL: postgres://collab:collab@localhost:5432/collab
+      REDIS_URL: redis://localhost:6379
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Start 3 instances + load balancer
+        run: npm run cluster -w server > cluster.log 2>&1 &
+        env:
+          COMPACT_THRESHOLD: 20
+          # AI endpoints are exercised against a local mock AI API (started by the e2e test)
+          AI_PROVIDER: openai
+          AI_API_KEY: test
+          AI_BASE_URL: http://localhost:4999/v1
+      - name: Wait for the cluster
+        run: |
+          for i in $(seq 1 60); do
+            curl -sf http://localhost:4001/api/health && curl -sf http://localhost:4002/api/health \
+              && curl -sf http://localhost:4003/api/health && exit 0
+            sleep 1
+          done
+          echo "cluster did not start"; cat cluster.log; exit 1
+      - run: npm run test:e2e
+      - name: Server logs
+        if: always()
+        run: cat cluster.log
+
+  docker:
+    name: Full stack in Docker (3 app containers + nginx)
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build and start the stack
+        run: docker compose --profile full up -d --build --wait
+      - name: Wait for the load balancer
+        run: |
+          for i in $(seq 1 60); do curl -sf http://localhost:8080/api/health && exit 0; sleep 1; done
+          docker compose --profile full logs; exit 1
+      - name: E2E through nginx
+        run: npm run test:e2e
+        env:
+          API: http://localhost:8080
+          INSTANCE_PORTS: 8080,8080,8080
+      - name: Container logs
+        if: always()
+        run: docker compose --profile full logs --no-color
+      - run: docker compose --profile full down -v
+        if: always()
