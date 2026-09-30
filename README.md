@@ -1,8 +1,7 @@
 # CoEdit: a real-time collaborative editor
 
-[![CI](https://github.com/YOUR_GITHUB_USERNAME/collab-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_GITHUB_USERNAME/collab-editor/actions/workflows/ci.yml)
-**Live demo:** https://YOUR-APP.onrender.com  <!-- replace both after you push & deploy (section 7) -->
-
+[![CI](https://github.com/Saanvi-Bankapur/collab-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/Saanvi-Bankapur/collab-editor/actions/workflows/ci.yml)
+**Live demo:** https://coedit-d9eb.onrender.comAPP.onrender.com  
 A small Google Docs: several people edit one document at once, with live cursors, presence, sharing and permissions, version history, offline editing, and horizontal scaling across several WebSocket servers. Extras: full-text search, AI assist, import/export (Markdown, Word, PDF), tables, checklists, syntax-highlighted code, images, @mentions, notifications and templates.
 
 **Stack:** React + TypeScript (Vite), TipTap (ProseMirror) editor, **Yjs CRDT**, Node.js + TypeScript backend (Express + `ws`), PostgreSQL, Redis pub/sub.
@@ -35,7 +34,7 @@ That's it. The database tables are created automatically when the server starts.
 ### Optional manual steps
 
 - **Push to GitHub and deploy:** see [section 7](#7-ci-and-live-demo-manual-steps).
-- **Try it with a friend on your Wi-Fi:** run `npm run dev -w client -- --host` and share `http://<your-LAN-IP>:5173`. Windows Firewall will ask for permission, so allow it.
+- **Try it with a friend on your Wi-Fi:** run `npm run dev -w client -- --host` and share `http://<coedit-d9eb.onrender.comLAN-IP>:5173`. Windows Firewall will ask for permission, so allow it.
 
 ### Testing with two accounts on one computer
 
@@ -63,7 +62,7 @@ The only question is how the other laptops reach your server:
 | Situation | What to do | Others open |
 |---|---|---|
 | **Same Wi-Fi** (e.g. both in the library) | Run `npm run dev` as usual. Vite prints a `Network:` address such as `http://192.168.1.23:5173`. Allow Node through Windows Firewall when asked. | `http://192.168.1.23:5173` |
-| **Different places / networks** | Deploy it (section 7: Render). Everyone uses the public link. | `https://your-app.onrender.com` |
+| **Different places / networks** | Deploy it (section 7: Render). Everyone uses the public link. | `https://coedit-d9eb.onrender.comapp.onrender.com` |
 | **Quick internet demo without deploying** | `npx cloudflared tunnel --url http://localhost:5173` (or ngrok) gives a temporary public https link | the printed `https://….trycloudflare.com` link |
 
 Each person signs up with their own email on their own device. Sharing, live cursors, presence and notifications then work across devices exactly as they do between two tabs.
@@ -257,11 +256,11 @@ sequenceDiagram
    git add .
    git commit -m "CoEdit: real-time collaborative editor"
    git branch -M main
-   git remote add origin https://github.com/YOUR_GITHUB_USERNAME/collab-editor.git
+   git remote add origin https://github.com/Saanvi-Bankapur/collab-editor.git
    git push -u origin main
    ```
 3. Open the **Actions** tab. The CI workflow runs automatically, taking about 3-5 minutes.
-4. In this README, replace `YOUR_GITHUB_USERNAME` in the badge URL, then commit and push again.
+4. In this README, replace `Saanvi-Bankapur` in the badge URL, then commit and push again.
 
 **B. Deploy the live demo on Render (free)**
 1. Sign up at https://render.com with your GitHub account.
@@ -296,7 +295,7 @@ Everything works without these. Each one switches on a feature. Put the values i
    ```
 3. Add this CORS configuration so browsers can upload with the presigned URL (add your deployed URL too):
    ```json
-   [{ "AllowedMethods": ["PUT"], "AllowedOrigins": ["http://localhost:5173", "https://YOUR-APP.onrender.com"], "AllowedHeaders": ["*"] }]
+   [{ "AllowedMethods": ["PUT"], "AllowedOrigins": ["http://localhost:5173", "https://coedit-d9eb.onrender.comAPP.onrender.com"], "AllowedHeaders": ["*"] }]
    ```
 4. Create an IAM user with `s3:PutObject` on `arn:aws:s3:::coedit-uploads-yourname/uploads/*`, then create an access key for it.
 5. Set `S3_BUCKET`, `S3_REGION`, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. Optionally set `S3_PUBLIC_URL` to a CloudFront domain.
