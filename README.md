@@ -1,7 +1,7 @@
 # CoEdit: a real-time collaborative editor
 
 [![CI](https://github.com/Saanvi-Bankapur/collab-editor/actions/workflows/ci.yml/badge.svg)](https://github.com/Saanvi-Bankapur/collab-editor/actions/workflows/ci.yml)
-**Live demo:** https://coedit-d9eb.onrender.comAPP.onrender.com  
+   **Live demo:** https://coedit-d9eb.onrender.com
 A small Google Docs: several people edit one document at once, with live cursors, presence, sharing and permissions, version history, offline editing, and horizontal scaling across several WebSocket servers. Extras: full-text search, AI assist, import/export (Markdown, Word, PDF), tables, checklists, syntax-highlighted code, images, @mentions, notifications and templates.
 
 **Stack:** React + TypeScript (Vite), TipTap (ProseMirror) editor, **Yjs CRDT**, Node.js + TypeScript backend (Express + `ws`), PostgreSQL, Redis pub/sub.
@@ -62,7 +62,7 @@ The only question is how the other laptops reach your server:
 | Situation | What to do | Others open |
 |---|---|---|
 | **Same Wi-Fi** (e.g. both in the library) | Run `npm run dev` as usual. Vite prints a `Network:` address such as `http://192.168.1.23:5173`. Allow Node through Windows Firewall when asked. | `http://192.168.1.23:5173` |
-| **Different places / networks** | Deploy it (section 7: Render). Everyone uses the public link. | `https://coedit-d9eb.onrender.comapp.onrender.com` |
+| **Different places / networks** | Deploy it (section 7: Render). Everyone uses the public link. | `https://coedit-d9eb.onrender.com` |
 | **Quick internet demo without deploying** | `npx cloudflared tunnel --url http://localhost:5173` (or ngrok) gives a temporary public https link | the printed `https://….trycloudflare.com` link |
 
 Each person signs up with their own email on their own device. Sharing, live cursors, presence and notifications then work across devices exactly as they do between two tabs.
@@ -295,7 +295,7 @@ Everything works without these. Each one switches on a feature. Put the values i
    ```
 3. Add this CORS configuration so browsers can upload with the presigned URL (add your deployed URL too):
    ```json
-   [{ "AllowedMethods": ["PUT"], "AllowedOrigins": ["http://localhost:5173", "https://coedit-d9eb.onrender.comAPP.onrender.com"], "AllowedHeaders": ["*"] }]
+   [{ "AllowedMethods": ["PUT"], "AllowedOrigins": ["http://localhost:5173", "https://coedit-d9eb.onrender.com"], "AllowedHeaders": ["*"] }]
    ```
 4. Create an IAM user with `s3:PutObject` on `arn:aws:s3:::coedit-uploads-yourname/uploads/*`, then create an access key for it.
 5. Set `S3_BUCKET`, `S3_REGION`, `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`. Optionally set `S3_PUBLIC_URL` to a CloudFront domain.
